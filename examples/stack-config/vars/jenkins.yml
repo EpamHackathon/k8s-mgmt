@@ -29,15 +29,59 @@ Master:
   LoadBalancerSourceRanges: []
 # List of plugins to be install during Jenkins master start
   InstallPlugins:
-      - kubernetes:0.11
-      - workflow-aggregator:2.5
-      - credentials-binding:1.11
-      - git:3.2.0
+      - kubernetes-ci
+      - kubernetes    
+      - workflow-aggregator:latest
+      - credentials-binding:latest
+      - git:latest
       - prometheus:latest
-      - github-pullrequest:latest
-      - github:latest
-      - github-pr-comment-build:latest
-      - github-branch-source:latest
+      - role-strategy
+      - multiple-scms
+      - github
+      - github-api
+      - github-oauth
+      - github-pr-coverage-status
+      - github-organization-folder
+      - github-pullrequest
+      - github-pr-comment-build
+      - blueocean
+      - ghprb
+      - rebuild
+      - envinject
+      - managed-scripts
+      - conditional-buildstep
+      - greenballs
+      - matrix-auth
+      - ssh-slaves
+      - monitoring
+      - job-dsl
+      - ansicolor
+      - mask-passwords
+      - build-user-vars-plugin
+      - build-timestamp
+      - uno-choice
+      - email-ext
+      - dynamic_extended_choice_parameter
+      - extensible-choice-parameter
+      - extended-choice-parameter
+      - ws-cleanup
+      - jobConfigHistory
+      - dynamicparameter
+      - Parameterized-Remote-Trigger
+      - timestamper
+      - parameterized-trigger
+      - slack
+      - customize-build-now
+      - permissive-script-security
+      - sonar
+      - groovy-postbuild
+      - show-build-parameters
+      - pipeline-maven
+      - docker-workflow
+      - gradle
+      - pegdown-formatter
+      - antisamy-markup-formatter
+      - docker-slaves
 # Used to approve a list of groovy functions in pipelines used the script-security plugin. Can be viewed under /scriptApproval
   # ScriptApproval:
   #   - "method groovy.json.JsonSlurperClassic parseText java.lang.String"
@@ -77,6 +121,115 @@ Master:
 
     instance.save()
   - |
+    // Disabling Security
+    import javaposse.jobdsl.plugin.GlobalJobDslSecurityConfiguration
+    import jenkins.model.GlobalConfiguration
+    import org.kohsuke.stapler.StaplerRequest
+
+    // current value  
+    println GlobalConfiguration.all().get(GlobalJobDslSecurityConfiguration.class).useScriptSecurity
+
+    // change vaue
+    StaplerRequest stapler = null
+    net.sf.json.JSONObject jsonObject = new net.sf.json.JSONObject()
+    //jsonObject.put("useScriptSecurity", false)  // it uses has method https://github.com/jenkinsci/job-dsl-plugin/blob/6a70bba91e671ebe72fd682e92e9abea48a2b050/job-dsl-plugin/src/main/groovy/javaposse/jobdsl/plugin/GlobalJobDslSecurityConfiguration.groovy#L21
+    GlobalConfiguration.all().get(GlobalJobDslSecurityConfiguration.class).configure(stapler, jsonObject)
+
+    // new value
+    println GlobalConfiguration.all().get(GlobalJobDslSecurityConfiguration.class).useScriptSecurity  
+  - |
+    // Adding Credentials (secret text)
+    import jenkins.model.*
+    import com.cloudbees.plugins.credentials.*
+    import com.cloudbees.plugins.credentials.common.*
+    import com.cloudbees.plugins.credentials.domains.*
+    import com.cloudbees.plugins.credentials.impl.*
+    import org.jenkinsci.plugins.plaincredentials.*
+    import org.jenkinsci.plugins.plaincredentials.impl.*
+    import hudson.util.Secret
+    import org.jenkinsci.plugins.github.config.*;
+
+    domain = Domain.global()
+    store = Jenkins.instance.getExtensionList('com.cloudbees.plugins.credentials.SystemCredentialsProvider')[0].getStore()
+
+    secretText = new StringCredentialsImpl(
+    CredentialsScope.GLOBAL,
+    "dockerhub-creds",
+    "DockerHub credentials: Secret Text",
+    Secret.fromString("-u burakovsky -p 6ypa4ok"))
+
+    gitHubUsernameAndPassword = new UsernamePasswordCredentialsImpl(
+    CredentialsScope.GLOBAL,
+    "github-username-password", "GitHub creds: Username and Password",
+    "jenkinshack",
+    "changeme123"
+    )
+    gitHubUsernameAndToken = new UsernamePasswordCredentialsImpl(
+    CredentialsScope.GLOBAL,
+    "github-username-token", "GitHub creds: Username and Token",
+    "jenkinshack",
+    "5278b5049f32b432d29e2ecc3244c6cfa134fd0b"
+    )
+    store.addCredentials(domain, secretText)
+    store.addCredentials(domain, gitHubUsernameAndPassword)
+    store.addCredentials(domain, gitHubUsernameAndToken)    
+
+    def instance = Jenkins.getInstance();
+    def config = new GitHubServerConfig("github-username-token"); // Creadentials ID
+    config.setManageHooks(true);
+    instance.save();  
+
+  - |
+    // Adding DSL MNT job
+    import hudson.model.FreeStyleProject
+    import hudson.plugins.git.BranchSpec
+    import hudson.plugins.git.extensions.impl.RelativeTargetDirectory
+    import hudson.plugins.git.extensions.impl.SparseCheckoutPath
+    import hudson.plugins.git.extensions.impl.SparseCheckoutPaths
+    import hudson.plugins.git.GitSCM
+    import hudson.plugins.git.UserRemoteConfig
+    import hudson.tasks.Shell
+    import hudson.triggers.SCMTrigger
+    import javaposse.jobdsl.plugin.ExecuteDslScripts
+    import javaposse.jobdsl.plugin.*
+    import jenkins.model.Jenkins
+    import org.jenkinsci.plugins.multiplescms.MultiSCM
+    import hudson.plugins.ws_cleanup.PreBuildCleanup
+    import hudson.model.ChoiceParameterDefinition
+    import hudson.model.ParametersDefinitionProperty
+    import org.jenkinsci.plugins.envinject.EnvInjectBuildWrapper
+    import org.jenkinsci.plugins.envinject.EnvInjectJobPropertyInfo
+
+    def job = { name ->
+    jenkins = Jenkins.instance
+
+    project = new FreeStyleProject(jenkins, name)
+    pollTrigger = new SCMTrigger("*/5 * * * *")
+    project.with {
+    scm = new MultiSCM({
+    ciScm = new GitSCM("https://github.com/EpamHackathon/DemoSpringBootApp.git")
+    ciScm.userRemoteConfigs[0].credentialsId = 'github-username-token'
+    ciScm.branches = [new BranchSpec('master')]
+    [ciScm]
+    }())
+
+    cleanupWrapper = new PreBuildCleanup([], false, "", "")
+
+    buildWrappersList.addAll([cleanupWrapper])
+
+    dslBuilder = new ExecuteDslScripts()
+    dslBuilder.setTargets('ci/pipelineJobs.groovy')
+
+    buildersList.addAll([dslBuilder])
+    createTransientActions()
+    addTrigger(pollTrigger)
+    }
+    jenkins.add(project, name)
+    pollTrigger.start(project, true)
+    }
+
+    job("DSL-Jobs-Manager")
+  - |
     // Installing maven tool
     import hudson.tasks.Maven.MavenInstallation;
     import hudson.tools.InstallSourceProperty;
@@ -96,28 +249,7 @@ Master:
     def installation = new MavenInstallation("maven", "", proplist)
 
     mavenDesc.setInstallations(installation)
-    mavenDesc.save()
-  - |
-    // Adding Credentials (secret text)
-    import jenkins.model.*
-    import com.cloudbees.plugins.credentials.*
-    import com.cloudbees.plugins.credentials.common.*
-    import com.cloudbees.plugins.credentials.domains.*
-    import com.cloudbees.plugins.credentials.impl.*
-    import org.jenkinsci.plugins.plaincredentials.*
-    import org.jenkinsci.plugins.plaincredentials.impl.*
-    import hudson.util.Secret
-
-    domain = Domain.global()
-    store = Jenkins.instance.getExtensionList('com.cloudbees.plugins.credentials.SystemCredentialsProvider')[0].getStore()
-
-    secretText = new StringCredentialsImpl(
-    CredentialsScope.GLOBAL,
-    "dockerhub_creds",
-    "Secret Text of dockerhub credentials",
-    Secret.fromString("-u burakovsky -p 6ypa4ok"))
-
-    store.addCredentials(domain, secretText)
+    mavenDesc.save()  
 
   CustomConfigMap: false
 
@@ -133,7 +265,7 @@ Master:
 
 Agent:
   Enabled: true
-  Image: burakovsky/slave
+  Image: burakovsky/jslave
   ImageTag: "1.0"
   Privileged: false
   Cpu: ""
@@ -159,4 +291,3 @@ Persistence:
 #  - mountPath: /var/nothing
 #    name: nothing
 #    readOnly: true
-
