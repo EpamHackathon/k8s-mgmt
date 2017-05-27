@@ -34,18 +34,35 @@ stack:
     nginx:
         description: "Stack WEB Front-End/Proxy"
         chart-version: stable/nginx-ingress
+        assign_dns:
+            - jenkins
+            - prometheus
+            - grafana
+            - release
+            - test
         order: 4
+
+    kube-lego:
+        description: "Let's encrypt management"
+        kub-service-name: kube-lego
+        config: vars/lego.yml
+        order: 5
 
     ingress:
         description: "Nginx Virtual Hosts configs"
         kub-service-name: ingress
         config: vars/ingress.yml.j2
-        order: 5
+        order: 6
 
     release:
-        order: -1 # don't deploy
+        order: -1 # don't deploy with make file
         service_port: 8080
         service_name: release
         ingress: yes
+
+    lekube:
+        kub-service-name: logentries
+        config: vars/logentries.yml
+        order: 7
 
  

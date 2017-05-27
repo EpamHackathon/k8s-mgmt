@@ -17,7 +17,7 @@ server:
   resources:
     requests:
       cpu: 100m
-      memory: 100Mi
+      memory: 384Mi
   serviceType: ClusterIP
   loadBalancerSourceRanges: []
   setDatasource:
@@ -26,7 +26,7 @@ server:
     datasource:
       name: prometheus
       type: Prometheus
-      url: "http://hackathon-prometheus-server"
+      url: "http://hackathon-p8s-prometheus-server"
       access: proxy
       isDefault: true
     restartPolicy: OnFailure
@@ -123,14 +123,14 @@ serverConfigFile:
     ;enabled = false
     ;config_file = /etc/grafana/ldap.toml
     [smtp]
-    ;enabled = false
-    ;host = localhost:25
-    ;user =
-    ;password =
+    enabled = true
+    host = smtp.gmail.com:465
+    user = jenkins.hack@gmail.com
+    password = changeme123
     ;cert_file =
     ;key_file =
-    ;skip_verify = false
-    ;from_address = admin@grafana.localhost
+    skip_verify = true
+    from_address = alert@grafana.net
     [emails]
     ;welcome_email_on_sign_up = false
     [log]

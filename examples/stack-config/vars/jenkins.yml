@@ -13,7 +13,7 @@ Master:
   AdminUser: admin
   AdminPassword: admin
   Cpu: "200m"
-  Memory: "256Mi"
+  Memory: 512Mi"
 # Set min/max heap here if needed with:
 # JavaOpts: "-Xms512m -Xmx512m"
   ServicePort: 8080

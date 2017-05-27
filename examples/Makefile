@@ -39,5 +39,13 @@ konsole:                    ## Enable K8s Console
 	@echo http://localhost:8001/ui
 	@$(kubectl) proxy
 
-stack-deploy:               ## Deploy CI/CD/Tools Stack
-	@stack-config/serve.py stack-config/stack.yml
+stack-deploy-helm:
+	@stack-config/serve.py helm stack-config/stack.yml | bash
+
+stack-deploy-ingress:
+	@stack-config/serve.py ingress stack-config/stack.yml | bash
+
+stack-deploy-dns:
+	@stack-config/serve.py dns stack-config/stack.yml | bash
+
+stack-deploy: stack-deploy-helm stack-deploy-dns  stack-deploy-ingress            ## Deploy CI/CD/Tools Stack

@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lekube
+  namespace: default
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: lekube
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: lekube
+  template:
+    metadata:
+      name: lekube
+      labels:
+        app: lekube
+    spec:
+      serviceAccount: lekube
+      containers:
+      - name: lekube
+        image: jsingerdumars/lekube:latest
+        imagePullPolicy: Always
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: dockersocket
+          mountPath: /run/docker.sock
+        env:
+        - name: LOGENTRIES_TOKEN
+          value: 8d61ea98-139c-42a1-8b99-c7c757e43778
+      volumes:
+        - name: dockersocket
+          hostPath:
+            path: /var/run/docker.sock
