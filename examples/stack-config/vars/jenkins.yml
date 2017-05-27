@@ -12,8 +12,8 @@ Master:
   UseSecurity: true
   AdminUser: admin
   AdminPassword: admin
-  Cpu: "500m"
-  Memory: "1024Mi"
+  Cpu: "200m"
+  Memory: "256Mi"
 # Set min/max heap here if needed with:
 # JavaOpts: "-Xms512m -Xmx512m"
   ServicePort: 8080
@@ -26,15 +26,18 @@ Master:
 # NodePort: <to set explicitly, choose port between 30000-32767
   ContainerPort: 8080
   SlaveListenerPort: 50000
-  LoadBalancerSourceRanges:
-  - 0.0.0.0/0
+  LoadBalancerSourceRanges: []
 # List of plugins to be install during Jenkins master start
   InstallPlugins:
-      - kubernetes:latest
-      - workflow-aggregator:latest
-      - credentials-binding:latest
-      - git:latest
+      - kubernetes:0.11
+      - workflow-aggregator:2.5
+      - credentials-binding:1.11
+      - git:3.2.0
       - prometheus:latest
+      - github-pullrequest:latest
+      - github:latest
+      - github-pr-comment-build:latest
+      - github-branch-source:latest
 # Used to approve a list of groovy functions in pipelines used the script-security plugin. Can be viewed under /scriptApproval
   # ScriptApproval:
   #   - "method groovy.json.JsonSlurperClassic parseText java.lang.String"
@@ -130,11 +133,11 @@ Master:
 
 Agent:
   Enabled: true
-  Image: "burakovsky/jslave"
+  Image: burakovsky/slave
   ImageTag: "1.0"
   Privileged: false
-  Cpu: "500m"
-  Memory: "1024Mi"
+  Cpu: ""
+  Memory: ""
 
 Persistence:
   Enabled: true
@@ -156,3 +159,4 @@ Persistence:
 #  - mountPath: /var/nothing
 #    name: nothing
 #    readOnly: true
+
