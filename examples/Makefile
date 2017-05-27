@@ -13,9 +13,14 @@ help:
 	@echo
 
 version:              ## Show Tolls Versions
-	$(kubectl) --version
-	$(helm) --version
-	$(gcloud) --version
+	@echo Kubectl Version
+	$(kubectl) version
+	@echo
+	@echo Helm Version
+	$(helm) version
+	@echo 
+	@echo GCloud Version
+	$(gcloud) version
 
 get-svc:             ## Get K8s services
 	@$(kubectl) get svc
