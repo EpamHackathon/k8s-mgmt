@@ -1,22 +1,25 @@
 stack:
     common:
         project-name: hackathon
-
+        secret-name: hcktn
     jenkins:
         description: "Jenkins Service"
         chart-version: stable/jenkins
         config: vars/jenkins.yml
         order: 1
+        service-port: 8080
     prometheus:
         description: "Monitoring Service"
         chart-version: stable/prometheus
         config: vars/prometheus.yml
         order: 2
+        service-port: 80
     grafana:
         description: "Dashboard Service"
         chart-version: stable/grafana
         config: vars/grafana.yml
         order: 3
+        service-port: 80
     nginx:
         description: "Stack WEB Front-End/Proxy"
         chart-version: stable/nginx-ingress
@@ -26,4 +29,7 @@ stack:
         kub-service-name: ingress
         config: vars/ingress.yml
         order: 5
+    release:
+        order: -1 # don't deploy
+        service-port: 8080
  

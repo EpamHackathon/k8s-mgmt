@@ -47,4 +47,4 @@ spec:
 status:
   loadBalancer:
     ingress:
-    - ip: 35.187.171.216
+    - ip: {{ $(kubectl get svc | grep nginx-ingress-controller | awk '{print $3}') }}

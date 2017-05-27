@@ -24,8 +24,7 @@ if __name__ == "__main__":
     config = config['stack']
     prefix = config['common']['project-name']
 
-    commands = [ None for _ in range(len(config)-1) ]
-
+    commands = [None for _ in range(len(config)-1)]
     for k, v in config.iteritems():
         if k == 'common':
             continue
@@ -36,7 +35,10 @@ if __name__ == "__main__":
             command = "kubectl create"
         if v.get("config", ""):
             command += " -f %s/%s" % (os.path.dirname(config_path), v['config'])
-        commands[v.get("order") -1 ] = command
+        index = v.get("order")
+        if index > 0:
+            commands[index-1 ] = command
 
     for cmd in commands:
-        print(cmd)
+        if cmd:
+            print(cmd)
