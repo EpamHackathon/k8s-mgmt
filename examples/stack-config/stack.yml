@@ -2,34 +2,50 @@ stack:
     common:
         project-name: hackathon
         secret-name: hcktn
+        domain-name: bomba.by
+
     jenkins:
         description: "Jenkins Service"
         chart-version: stable/jenkins
         config: vars/jenkins.yml
         order: 1
-        service-port: 8080
+        service_port: 8080
+        service_name: jenkins
+        ingress: yes
+
     prometheus:
         description: "Monitoring Service"
         chart-version: stable/prometheus
         config: vars/prometheus.yml
         order: 2
-        service-port: 80
+        service_port: 80
+        service_name: prometheus-server
+        ingress: yes
+
     grafana:
         description: "Dashboard Service"
         chart-version: stable/grafana
         config: vars/grafana.yml
         order: 3
-        service-port: 80
+        service_port: 80
+        service_name: grafana
+        ingress: yes
+
     nginx:
         description: "Stack WEB Front-End/Proxy"
         chart-version: stable/nginx-ingress
         order: 4
+
     ingress:
         description: "Nginx Virtual Hosts configs"
         kub-service-name: ingress
-        config: vars/ingress.yml
+        config: vars/ingress.yml.j2
         order: 5
+
     release:
         order: -1 # don't deploy
-        service-port: 8080
+        service_port: 8080
+        service_name: release
+        ingress: yes
+
  

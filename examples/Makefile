@@ -22,10 +22,10 @@ tool-versions:              ## Show Tolls Versions
 	@echo GCloud Version
 	$(gcloud) version
 
-get-kub-svc:             ## Get K8s services
+get-kub-svc:                ## Get K8s services
 	@$(kubectl) get svc
 
-jenkins-get:         ## Check stack changes
+jenkins-get:                ## Check stack changes
 	@echo Jenkins URL:
 	@echo "  "Credentials: admin/$(shell $(kubectl) get secret --namespace default hackathon-jenkins -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode) 
 	@echo "  "URL: http://$(shell $(kubectl) get svc hackathon-jenkins --namespace default --template '{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}'):8080/login

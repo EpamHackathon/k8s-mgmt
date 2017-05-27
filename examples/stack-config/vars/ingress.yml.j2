@@ -1,0 +1,29 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: demo
+  namespace: default
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+spec:
+  tls:
+  - secretName: hack-tls
+    hosts:
+{% for host in hosts %}      - {{ host.name }}
+{% endfor %}
+  rules:
+{% for host in hosts %}  - host: {{ host.name }}
+    http:
+      paths:
+      - backend:
+          serviceName: {{ host.service_name }} 
+          servicePort: {{ host.port }}
+        path: /
+{% endfor %}
+status:
+  loadBalancer:
+    ingress:
+    - ip: {{ some_ip }}
+
