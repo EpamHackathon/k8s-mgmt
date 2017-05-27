@@ -1,0 +1,29 @@
+stack:
+    common:
+        project-name: hackathon
+
+    jenkins:
+        description: "Jenkins Service"
+        chart-version: stable/jenkins
+        config: vars/jenkins.yml
+        order: 1
+    prometheus:
+        description: "Monitoring Service"
+        chart-version: stable/prometheus
+        config: vars/prometheus.yml
+        order: 2
+    grafana:
+        description: "Dashboard Service"
+        chart-version: stable/grafana
+        config: vars/grafana.yml
+        order: 3
+    nginx:
+        description: "Stack WEB Front-End/Proxy"
+        chart-version: stable/nginx-ingress
+        order: 4
+    ingress:
+        description: "Nginx Virtual Hosts configs"
+        kub-service-name: ingress
+        config: vars/ingress.yml
+        order: 5
+ 
